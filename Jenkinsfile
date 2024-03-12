@@ -47,18 +47,14 @@ stages {
 
         }
         stage('Docker Push'){ //we pass the built image to our docker hub account
-            environment
-            {
-                DOCKER_PASS = credentials("DOCKER_HUB_CREDENTIALS") // we retrieve  docker password from secret text called docker_hub_pass saved on jenkins
-            }
-
             steps {
-
                 script {
-                sh '''
-                docker login -u $DOCKER_ID -p $DOCKER_PASS
-                docker push $DOCKER_ID/$DOCKER_IMAGE:$DOCKER_TAG
-                '''
+                    withCredentials([usernamePassword(credentialsId: 'DOCKER_HUB_CREDENTIALS', usernameVariable: 'DOCKER_ID', passwordVariable: 'DOCKER_PASS')]) {
+                        sh '''
+                        echo $DOCKER_PASS | docker login -u $DOCKER_ID --password-stdin
+                        docker push $DOCKER_ID/$DOCKER_IMAGE:$DOCKER_TAG
+                        '''
+                    }
                 }
             }
 
